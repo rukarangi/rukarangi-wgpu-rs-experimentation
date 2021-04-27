@@ -21,6 +21,7 @@ struct State {
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
+    resolution: [f32; 2],
     // vertex_buffer: wgpu::Buffer,
     // num_vertices: u32,
 }
@@ -178,6 +179,7 @@ impl State {
             uniforms,
             uniform_buffer,
             uniform_bind_group,
+            resolution,
         }
     }
 
@@ -185,6 +187,11 @@ impl State {
         self.size = new_size;
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
+        
+        let resolution: [f32; 2] = [new_size.height as f32, new_size.width as f32];
+        self.uniforms.update_resolution(resolution);
+        self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[self.uniforms]));
+
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
     }
 
@@ -261,6 +268,12 @@ impl Uniforms {
         let float_elapsed = elapsed.as_secs_f32();
 
         self.time = float_elapsed;
+    }
+
+    fn update_resolution(&mut self, resolution: [f32; 2]) {
+        let new_resolution = resolution;
+
+        self.resolution = new_resolution;
     }
 }
 
